@@ -15,7 +15,7 @@ export const AppContextProvider = (props) => {
     const [isSearched, setIsSearched] = useState(false);
     const [jobs, setJobs] = useState([]);
     const [showRecruiterLogin, setShowRecruiterLogin] = useState(false);
-    const [companyToken, setCompanyToken] = useState(null);
+    const [companyToken, setCompanyToken] = useState(localStorage.getItem("companyToken") || null);
     const [companyData, setCompanyData] = useState(null);
     const [userData, setUserData] = useState(null);
     const [userApplications, setUserApplications] = useState([]);
@@ -85,29 +85,47 @@ export const AppContextProvider = (props) => {
         }
     };
 
+    // 👇 Fetch jobs + recruiter/user data on mount or changes
     useEffect(() => {
         fetchJobs();
+
         if (user) {
             fetchUserData();
             fetchUserApplications();
         }
+
+        // 🤖 When company logs in or token exists
+        if (companyToken) {
+            fetchCompanyData();
+        }
+
     }, [user, companyToken]);
+
+    // ✅ Save token to localStorage when changed
+    useEffect(() => {
+        if (companyToken) {
+            localStorage.setItem("companyToken", companyToken);
+        }
+    }, [companyToken]);
 
     return (
         <AppContext.Provider value={{
+            backendUrl,                // ✅ Make sure this is available!
             jobs,
             isSearched,
             setIsSearched,
             searchFilter,
             setSearchFilter,
             companyData,
+            setCompanyData,           // ✅ Optional but useful
+            companyToken,
+            setCompanyToken,
             userData,
             userApplications,
-            setCompanyToken,
             showRecruiterLogin,
             setShowRecruiterLogin,
         }}>
             {props.children}
         </AppContext.Provider>
-    )
-}
+    );
+};
